@@ -6,9 +6,10 @@ const cheerio = require('cheerio');
 const OpenAI = require('openai');
 const request = require('request');
 
+// Initialize OpenAI with the API key from environment variables
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY2});
 
-
+// Define selectors for different websites
 const selectors = {
   'www.nature.com': '.c-article-body p',
   'www.pcgamer.com': '#article-body p',
@@ -25,6 +26,7 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express', number: process.env.PORT || 3000});
 });
 
+//Function to fetch the content of the article from the given URL
 function getArticleContent(url, callback) {
   const selector = getSelectorForUrl(url);
   if (!selector) {
@@ -32,6 +34,7 @@ function getArticleContent(url, callback) {
     return;
   }
 
+  //Request the webpage content
   request(url, function (error, response, body) {
     if (error) {
       console.error('Error fetching the webpage:', error);
@@ -50,6 +53,7 @@ function getArticleContent(url, callback) {
   });
 }
 
+// Function returns the selector for the given URL if it is present or returns the default selector
 function getSelectorForUrl(url) {
   for (let key in selectors) {
     if (url.includes(key)) {
@@ -59,21 +63,26 @@ function getSelectorForUrl(url) {
   return 'p'; //default selector
 }
 
+// POST route to summarize an article
 router.post('/summarize', function(req, res, next) {
+  //get the URL and number of sentences from the request
   const url = req.body.url;
   const sentences = req.body.sentences || 3;
 
+  // Validate the input
   if (!url) {
     return res.status(400).json({ error: 'URL is required' });
   }else if (sentences < 1 || sentences > 10) {
     return res.status(400).json({ error: 'Number of sentences must be between 1 and 10' });
   }
 
+  // Fetch the article content and generate the summary
   getArticleContent(url, function(error, content) {
     if (error) {
       return res.status(500).json({ error: 'Failed to fetch article content' });
     }
 
+    // Generate the summary using chosen OpenAI's model
     openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'system', content: 'Can you shorten this article in its original language using ' + sentences + ' sentences: ' + content }],
