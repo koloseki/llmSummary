@@ -69,6 +69,9 @@ function getSelectorForUrl(url) {
 //Array of available models , I recommend use of gpt-4o for better results
 const availableModels = ['gpt-4o', 'gpt-3.5-turbo-0125' , 'gpt-4-turbo'];
 
+//Array of available languages
+const availableLanguages = ['polish', 'english' , 'german' , 'japanese' , 'french'];
+
 //Cache object to store the article content
 const summaryCache = {};
 
@@ -80,7 +83,7 @@ router.post('/summarize', function(req, res, next) {
   const maxTokens = req.body.max_tokens || 320;
   const temperature = req.body.temperature || 0.5;
   const model = req.body.model || 'gpt-4o';
-
+  const lang = req.body.lang || 'polish';
 
   // Validate the input
   if (!url) {
@@ -93,6 +96,8 @@ router.post('/summarize', function(req, res, next) {
     return res.status(400).json({ error: 'Temperature must be between 0 and 1' });
   }else if (!availableModels.includes(model)) {
     return res.status(400).json({ error: 'Model not supported' });
+  }else if (!availableLanguages.includes(lang)) {
+    return res.status(400).json({ error: 'Language not supported' });
   }
 
   // Check if the summary is already in the cache
@@ -115,9 +120,9 @@ router.post('/summarize', function(req, res, next) {
     // Generate the summary using chosen OpenAI's model
     openai.chat.completions.create({
       model: model,
-      messages: [{ role: 'system', content: 'Can you shorten this article in its original language using ' + sentences + ' sentences: ' + content }],
+      messages: [{ role: 'system', content: 'Can you shorten this article using ' + sentences + ' sentences: ' + content + " and translate it to " + lang + ' ?'}],
       max_tokens: maxTokens,
-      temperature: temperature
+      temperature: temperature,
     }).then(response => {
       const { choices: [{ message: { content: text } }] } = response;
 
@@ -128,6 +133,7 @@ router.post('/summarize', function(req, res, next) {
         /* uncomment the below line to get the content of the article in the response
           original:content ,
          */
+        language: lang,
         summary: text.trim()
       });
     }).catch(error => {
