@@ -79,7 +79,7 @@ const summaryCache = {};
 router.post('/summarize', function(req, res, next) {
   //get the URL and number of sentences from the request
   const url = req.body.url;
-  const sentences = req.body.sentences || 3;
+  const sentences = req.body.sentences || 4;
   const maxTokens = req.body.max_tokens || 320;
   const temperature = req.body.temperature || 0.5;
   const model = req.body.model || 'gpt-4o';
@@ -130,10 +130,13 @@ router.post('/summarize', function(req, res, next) {
       summaryCache[url] = text.trim();
 
       res.json({
-        /* uncomment the below line to get the content of the article in the response
+        /* uncomment the below line to get all the details of the response
+          language: lang,
+          model: model,
+          temperature: temperature,
+          max_tokens: maxTokens,
           original:content ,
          */
-        language: lang,
         summary: text.trim()
       });
     }).catch(error => {
