@@ -98,3 +98,7 @@ router.post('/summarize', function(req, res, next) {
 });;
 
 module.exports = router;
+
+//Exports for testing
+module.exports.getSelectorForUrl = getSelectorForUrl;
+module.exports.getArticleContent = getArticleContent;
