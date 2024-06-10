@@ -63,17 +63,38 @@ function getSelectorForUrl(url) {
   return 'p'; //default selector
 }
 
+//Array of available models , I recommend use of gpt-4o for better results
+const availableModels = ['gpt-4o', 'gpt-3.5-turbo-0125' , 'gpt-4-turbo'];
+
+//Cache object to store the article content
+const summaryCache = {};
+
 // POST route to summarize an article
 router.post('/summarize', function(req, res, next) {
   //get the URL and number of sentences from the request
   const url = req.body.url;
   const sentences = req.body.sentences || 3;
+  const maxTokens = req.body.max_tokens || 320;
+  const temperature = req.body.temperature || 0.5;
+  const model = req.body.model || 'gpt-4o';
+
 
   // Validate the input
   if (!url) {
     return res.status(400).json({ error: 'URL is required' });
   }else if (sentences < 1 || sentences > 10) {
     return res.status(400).json({ error: 'Number of sentences must be between 1 and 10' });
+  }else if (maxTokens < 1 || maxTokens > 2048) {
+    return res.status(400).json({ error: 'Max tokens must be between 1 and 2048' });
+  }else if (temperature < 0 || temperature > 1) {
+    return res.status(400).json({ error: 'Temperature must be between 0 and 1' });
+  }else if (!availableModels.includes(model)) {
+    return res.status(400).json({ error: 'Model not supported' });
+  }
+
+    // Check if the summary is already in the cache
+  if (summaryCache[url]) {
+    return res.json({ summary: summaryCache[url] });
   }
 
   // Fetch the article content and generate the summary
@@ -84,12 +105,22 @@ router.post('/summarize', function(req, res, next) {
 
     // Generate the summary using chosen OpenAI's model
     openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: model,
       messages: [{ role: 'system', content: 'Can you shorten this article in its original language using ' + sentences + ' sentences: ' + content }],
-      max_tokens: 320
+      max_tokens: maxTokens,
+      temperature: temperature
     }).then(response => {
       const { choices: [{ message: { content: text } }] } = response;
-      res.json({ original:content , summary: text.trim() });
+
+        // Store the summary in the cache
+      summaryCache[url] = text.trim();
+
+      res.json({
+        /* uncomment the below line to get the content of the article in the response
+          original:content ,
+         */
+        summary: text.trim()
+      });
     }).catch(error => {
       console.error('Error generating summary:', error);
       res.status(500).json({ error: 'Failed to generate summary' });
