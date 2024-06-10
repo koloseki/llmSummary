@@ -9,6 +9,9 @@ const request = require('request');
 // Initialize OpenAI with the API key from environment variables
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY2});
 
+// Maximum number of summaries to store in the cache
+const MAX_CACHE_SIZE = 100
+
 // Define selectors for different websites
 const selectors = {
   'www.nature.com': '.c-article-body p',
@@ -92,10 +95,16 @@ router.post('/summarize', function(req, res, next) {
     return res.status(400).json({ error: 'Model not supported' });
   }
 
-    // Check if the summary is already in the cache
+  // Check if the summary is already in the cache
   if (summaryCache[url]) {
     return res.json({ summary: summaryCache[url] });
   }
+  // If the cache size exceeds the maximum size, remove the oldest summary
+  if (Object.keys(summaryCache).length > MAX_CACHE_SIZE) {
+    const oldestUrl = Object.keys(summaryCache)[0];
+    delete summaryCache[oldestUrl];
+  }
+
 
   // Fetch the article content and generate the summary
   getArticleContent(url, function(error, content) {
