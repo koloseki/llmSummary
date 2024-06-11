@@ -5,10 +5,12 @@ This project involves the creation of a server-side application built with Node.
 ## Table of Contents
 
 - [Getting Started](#getting-started)
-    - [Requirements](#Requirements)
-    - [Installation](#installation)
-    - [Tests](#tests)
+  - [Requirements](#Requirements)
+  - [Installation](#installation)
+  - [Tests](#tests)
 - [Usage](#usage)
+  - [Google Cloud](#google-cloud)
+  - [Docker](#docker)
 - [Built With](#built-with-openai)
 - [License](#license)
 
@@ -19,6 +21,7 @@ This project involves the creation of a server-side application built with Node.
 - Node.js
 - npm
 - OpenAI API Key
+- Docker (Optional)
 
 ### Installation
 
@@ -86,6 +89,27 @@ This will return a JSON object with the summarized text in the `summary` propert
 ```
 
 You can also use the API with a tool like Postman or Insomnia by sending a POST request to `http://localhost:3000/summarize` with the same JSON object in the request body.
+
+### Google Cloud 
+
+I also hosted the application on Google Cloud. You can access the API using the following URL: https://llmsummary-woblmnvrkq-lm.a.run.app </n>
+You can use the same steps as above to use the API on Google Cloud.
+Send a POST request to `https://llmsummary-woblmnvrkq-lm.a.run.app/summarize` with the same JSON object in the request body.
+
+### Docker
+
+You can also run the application using Docker. To do this, you need to have Docker installed on your machine. </n>
+Run the following command to build the Docker image:
+
+```bash
+docker build -t llmsummary .
+```
+After the image is built, you can run the container using the following command:
+
+```bash
+docker run -p 8080:3000 -d llmsummary
+```
+This will start the container and expose the application on port 8080. You can then access the API by sending a POST request to `http://localhost:8080/summarize` with the same JSON object in the request body.
 
 ## Built With OpenAI
 
